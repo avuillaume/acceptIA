@@ -13,7 +13,7 @@ library(shiny)
 library(shinyjs)
 library(shinythemes)
 library(dplyr)
-
+library(writexl)
 # Source des modules
 source("modules/ui_modules.R")
 source("modules/ui_modules_suite.R")
@@ -194,15 +194,30 @@ server <- function(input, output, session) {
   # Reactive values pour stocker les données
   rv <- reactiveValues(
     current_section = 0,
-    max_section = 15,  # 3 intro + 4 jeux hasard + 7 sections questionnaire + 1 fin
+    max_section = 19,  # 3 intro + 8 jeux hasard + 7 sections questionnaire + 1 fin
     participant_data = list(),
     participant_id = paste0("P", format(Sys.time(), "%Y%m%d%H%M%S")),
-    # Randomisation de l'ordre Bénéfices/Craintes (TRUE = Bénéfices en premier, FALSE = Craintes en premier)
+    # Randomisation 1 : Ordre Bénéfices/Craintes (TRUE = Bénéfices en premier, FALSE = Craintes en premier)
     benefices_first = sample(c(TRUE, FALSE), 1),
+    # Randomisation 2 : Position Usages santé (TRUE = avant IA, FALSE = après IA)
+    usages_sante_first = sample(c(TRUE, FALSE), 1),
     # Variables pour la tâche de comptage
     digit_to_count = NULL,
     correct_count = NULL,
-    counting_error = FALSE
+    counting_error = FALSE,
+    # Variables pour les décisions conditionnelles (sections 8-11)
+    show_section_8 = FALSE,  # Risque Gains 2 - montré si section 4 = 10
+    show_section_9 = FALSE,  # Risque Pertes 2 - montré si section 5 = 0
+    show_section_10 = FALSE, # Ambiguïté Gains 2 - montré si section 6 = 10
+    show_section_11 = FALSE, # Ambiguïté Pertes 2 - montré si section 7 = 0
+    # Randomisation de l'ordre des grilles obligatoires (sections 4-7)
+    # Ordre aléatoire des 4 types: "risque_gains", "risque_pertes", "ambiguite_gains", "ambiguite_pertes"
+    order_grilles_obligatoires = sample(c("risque_gains", "risque_pertes", "ambiguite_gains", "ambiguite_pertes")),
+    # Randomisation de l'ordre des grilles optionnelles (sections 8-11) - sera calculé après section 7
+    order_grilles_optionnelles = NULL,
+    # Résultats du tirage au sort final
+    lottery_executed = FALSE,
+    lottery_results = NULL
   )
   
   # Initialiser la tâche de comptage au démarrage
@@ -230,7 +245,10 @@ server <- function(input, output, session) {
   output$progress_bar <- renderUI({
     if (rv$current_section == 0) return(NULL)
     
-    progress_pct <- round((rv$current_section / rv$max_section) * 100)
+    # Calculer la position et le max effectifs en tenant compte des sections conditionnelles
+    effective_position <- calculate_effective_position(rv$current_section, rv)
+    effective_max <- calculate_effective_max_section(rv)
+    progress_pct <- round((effective_position / effective_max) * 100)
     
     div(
       class = "progress",
@@ -280,49 +298,144 @@ server <- function(input, output, session) {
   output$current_section <- renderUI({
     section <- rv$current_section
     
+    # DEBUG : Afficher quelle section est demandée
+    cat("=== Affichage de la section", section, "===\n")
+    
     if (section == 0) return(NULL)
     
-    # Sections 11 et 12 sont randomisées (Bénéfices/Craintes)
-    if (section == 11) {
-      # Section 11 : afficher Bénéfices ou Craintes selon la randomisation
-      if (rv$benefices_first) {
-        return(section_ia_benefices_ui(section_number = "A"))
-      } else {
-        return(section_ia_craintes_ui(section_number = "A"))
+    # Sections 4-7 : Grilles obligatoires randomisées
+    if (section >= 4 && section <= 7) {
+      grille_type <- get_grille_type_for_section(section, rv)
+      return(get_ui_for_grille_type(grille_type, optional = FALSE))
+    }
+    
+    # Sections 8-11 : Grilles optionnelles randomisées
+    if (section >= 8 && section <= 11) {
+      # Vérifier si cette section conditionnelle doit être affichée
+      should_show <- switch(
+        as.character(section),
+        "8" = rv$show_section_8,
+        "9" = rv$show_section_9,
+        "10" = rv$show_section_10,
+        "11" = rv$show_section_11,
+        FALSE
+      )
+      
+      if (!should_show) {
+        cat("ATTENTION: Section", section, "conditionnelle pas activée!\n")
+        cat("Flags: 8=", rv$show_section_8, " 9=", rv$show_section_9, 
+            " 10=", rv$show_section_10, " 11=", rv$show_section_11, "\n")
+        # Cette section ne devrait JAMAIS être affichée
+        # C'est un bug si on arrive ici - afficher un message d'erreur
+        return(div(
+          class = "alert alert-warning",
+          h3("Navigation incorrecte"),
+          p("Cette section (", section, ") ne devrait pas être affichée."),
+          p("Cliquez sur 'Suivant' pour continuer.")
+        ))
       }
-    } else if (section == 12) {
-      # Section 12 : afficher l'autre (Craintes ou Bénéfices)
-      if (rv$benefices_first) {
-        return(section_ia_craintes_ui(section_number = "B"))
+      
+      # Initialiser l'ordre des optionnelles si ce n'est pas déjà fait
+      if (is.null(rv$order_grilles_optionnelles)) {
+        cat("Initialisation de order_grilles_optionnelles\n")
+        rv$order_grilles_optionnelles <- initialize_optional_grilles_order(rv)
+        cat("Ordre optionnelles:", paste(rv$order_grilles_optionnelles, collapse=", "), "\n")
+      }
+      
+      grille_type <- get_grille_type_for_section(section, rv)
+      cat("Section", section, "→ Type de grille:", grille_type, "\n")
+      
+      if (!is.null(grille_type)) {
+        return(get_ui_for_grille_type(grille_type, optional = TRUE))
       } else {
-        return(section_ia_benefices_ui(section_number = "B"))
+        cat("ERREUR: grille_type NULL pour section", section, "\n")
+        cat("order_grilles_optionnelles:", paste(rv$order_grilles_optionnelles, collapse=", "), "\n")
+        return(div(
+          class = "alert alert-danger",
+          h3("Erreur de configuration"),
+          p("Impossible de déterminer le type de grille pour la section", section),
+          p("Cliquez sur 'Suivant' pour continuer au questionnaire.")
+        ))
+      }
+    }
+    
+    # Sections 15, 16, 17 : 2 randomisations indépendantes
+    # 1) Bénéfices avant/après Craintes
+    # 2) Usages santé avant/après les questions IA
+    if (section >= 15 && section <= 17) {
+      if (rv$usages_sante_first) {
+        # Usages santé en premier (section 15), puis Bénéfices/Craintes (16-17)
+        if (section == 15) {
+          return(section_usages_sante_ui())
+        } else if (section == 16) {
+          # Section 16 : Bénéfices ou Craintes selon randomisation
+          if (rv$benefices_first) {
+            return(section_ia_benefices_ui(section_number = "1"))
+          } else {
+            return(section_ia_craintes_ui(section_number = "1"))
+          }
+        } else if (section == 17) {
+          # Section 17 : L'autre (Craintes ou Bénéfices)
+          if (rv$benefices_first) {
+            return(section_ia_craintes_ui(section_number = "2"))
+          } else {
+            return(section_ia_benefices_ui(section_number = "2"))
+          }
+        }
+      } else {
+        # Questions IA en premier (sections 15-16), puis Usages santé (17)
+        if (section == 15) {
+          # Section 15 : Bénéfices ou Craintes selon randomisation
+          if (rv$benefices_first) {
+            return(section_ia_benefices_ui(section_number = "1"))
+          } else {
+            return(section_ia_craintes_ui(section_number = "1"))
+          }
+        } else if (section == 16) {
+          # Section 16 : L'autre (Craintes ou Bénéfices)
+          if (rv$benefices_first) {
+            return(section_ia_craintes_ui(section_number = "2"))
+          } else {
+            return(section_ia_benefices_ui(section_number = "2"))
+          }
+        } else if (section == 17) {
+          return(section_usages_sante_ui())
+        }
       }
     }
     
     # Autres sections dans l'ordre normal
-    switch(
+    result <- switch(
       as.character(section),
       "1" = section_aversion_intro_ui(),
       "2" = section_tache_comptage_ui(digit_to_count = rv$digit_to_count, show_error = rv$counting_error),
       "3" = section_felicitations_ui(),
-      "4" = section_risque_gains_ui(),
-      "5" = section_risque_pertes_ui(),
-      "6" = section_ambiguite_gains_ui(),
-      "7" = section_ambiguite_pertes_ui(),
-      "8" = section_intro_ui(),
-      "9" = section_usages_numeriques_ui(),
-      "10" = section_sante_ui(),
-      "13" = section_usages_sante_ui(),
-      "14" = section_sociodemographiques_ui(),
-      "15" = section_fin_ui(),
-      section_fin_ui()  # Cas par défaut
+      "12" = section_intro_ui(),
+      "13" = section_usages_numeriques_ui(),
+      "14" = section_sante_ui(),
+      "18" = section_sociodemographiques_ui(),
+      "19" = section_fin_ui(),
+      NULL  # Cas par défaut : retourner NULL au lieu de la page de fin
     )
+    
+    # Si result est NULL, c'est qu'il y a un problème
+    if (is.null(result)) {
+      cat("ERREUR: Section", section, "non gérée par le switch!\n")
+      return(div(
+        class = "alert alert-danger",
+        h3("Erreur de navigation"),
+        p("Section non trouvée:", section),
+        p("Veuillez signaler ce problème à l'administrateur.")
+      ))
+    }
+    
+    return(result)
   })
   
   # Navigation : Bouton Précédent
   observeEvent(input$btn_previous, {
     if (rv$current_section > 1) {
-      rv$current_section <- rv$current_section - 1
+      rv$current_section <- previous_section_logic(rv$current_section, rv)
       # Remonter en haut de page
       shinyjs::runjs("window.scrollTo({top: 0, behavior: 'smooth'});")
     }
@@ -340,18 +453,42 @@ server <- function(input, output, session) {
         rv$counting_error <- FALSE
       }
       
-      if (rv$current_section < rv$max_section) {
-        rv$current_section <- rv$current_section + 1
+      # La dernière section est toujours 19 (section fin)
+      if (rv$current_section < 19) {
+        next_sec <- next_section_logic(rv$current_section, rv)
+        
+        # DEBUG : Afficher la progression
+        cat("Navigation: Section", rv$current_section, "→ Section", next_sec, "\n")
+        
+        # IMPORTANT : La loterie s'exécute UNIQUEMENT quand on passe de la section 18 à 19
+        # (après avoir terminé toutes les questions)
+        if (next_sec == 19 && rv$current_section == 18 && !rv$lottery_executed) {
+          cat("Exécution de la loterie finale (après questionnaire)...\n")
+          rv$lottery_results <- execute_final_lottery(rv)
+          rv$lottery_executed <- TRUE
+        }
+        
+        rv$current_section <- next_sec
         # Remonter en haut de page
         shinyjs::runjs("window.scrollTo({top: 0, behavior: 'smooth'});")
       } else {
-        # Fin de l'étude - sauvegarder toutes les données
-        save_participant_data(rv)
-        showModal(modalDialog(
-          title = "Merci !",
-          "Votre participation est terminée. Merci beaucoup pour votre contribution à cette recherche !",
-          footer = modalButton("Fermer")
-        ))
+        # Fin de l'étude - sauvegarder toutes les données dans MongoDB
+        success <- save_participant_data_mongo(rv)
+        
+        if (success) {
+          showModal(modalDialog(
+            title = "Merci !",
+            "Votre participation est terminée. Vos données ont été sauvegardées avec succès. Merci beaucoup pour votre contribution à cette recherche !",
+            footer = modalButton("Fermer")
+          ))
+        } else {
+          showModal(modalDialog(
+            title = "Erreur",
+            "Une erreur est survenue lors de la sauvegarde de vos données. Veuillez contacter l'administrateur.",
+            footer = modalButton("Fermer"),
+            easyClose = FALSE
+          ))
+        }
       }
     } else {
       # Message d'erreur spécifique pour la section de comptage
@@ -371,6 +508,122 @@ server <- function(input, output, session) {
   # Gestion des boutons de navigation
   observe({
     shinyjs::toggle("btn_previous", condition = rv$current_section > 1)
+  })
+  
+  # ========================================================================
+  # AFFICHAGE DES RÉSULTATS DU TIRAGE AU SORT FINAL
+  # ========================================================================
+  
+  output$lottery_results_display <- renderUI({
+    if (is.null(rv$lottery_results)) {
+      return(div(
+        style = "text-align: center; padding: 20px;",
+        p(icon("spinner", class = "fa-spin"), " Tirage en cours...")
+      ))
+    }
+    
+    results <- rv$lottery_results
+    selected <- results$selected_grille
+    lottery <- results$lottery_result
+    payoff <- results$final_payoff
+    
+    # Nom de la décision
+    type_names <- list(
+      "risque_gains" = "Risque et Gains",
+      "risque_pertes" = "Risque et Pertes",
+      "ambiguite_gains" = "Ambiguïté et Gains",
+      "ambiguite_pertes" = "Ambiguïté et Pertes"
+    )
+    
+    decision_name <- type_names[[selected$type]]
+    decision_version <- ifelse(selected$optional, " (version 2)", " (version 1)")
+    
+    div(
+      style = "background-color: #e8f5e9; padding: 25px; border-radius: 10px; border: 3px solid #4caf50;",
+      
+      h5(icon("trophy"), " Décision sélectionnée"),
+      p(strong("Décision n°", selected$decision_number, " : "), decision_name, decision_version),
+      
+      if (!selected$optional) {
+        # Grille obligatoire
+        tagList(
+          p(strong("Votre investissement : "), selected$response, " jetons"),
+          hr(),
+          h5(icon("dice"), " Résultat du tirage"),
+          if (grepl("gains", selected$type)) {
+            tagList(
+              p("Tirage : ", ifelse(lottery$lottery_result, "🟢 SUCCÈS", "🔴 ÉCHEC")),
+              p("• Jetons conservés : ", lottery$kept_tokens),
+              p("• Jetons de la loterie : ", lottery$lottery_tokens),
+              if (lottery$net_change >= 0) {
+                p(style = "color: green; font-size: 18px; font-weight: bold;",
+                  "✅ Vous gagnez ", lottery$net_change, " jetons")
+              } else {
+                p(style = "color: red; font-size: 18px; font-weight: bold;",
+                  "❌ Vous perdez ", abs(lottery$net_change), " jetons")
+              }
+            )
+          } else {
+            tagList(
+              p("Tirage : ", ifelse(lottery$lottery_result, "🔴 PERTE", "🟢 ÉVITÉ")),
+              p("• Jetons conservés : ", lottery$kept_tokens),
+              p("• Jetons de la loterie : ", lottery$lottery_tokens),
+              if (lottery$net_change >= 0) {
+                p(style = "color: green; font-size: 18px; font-weight: bold;",
+                  "✅ Vous gagnez ", lottery$net_change, " jetons")
+              } else {
+                p(style = "color: red; font-size: 18px; font-weight: bold;",
+                  "❌ Vous perdez ", abs(lottery$net_change), " jetons")
+              }
+            )
+          }
+        )
+      } else {
+        # Grille optionnelle (urnes)
+        color_names <- list(
+          "yellow" = list(emoji = "🟡", name = "JAUNE"),
+          "purple" = list(emoji = "🟣", name = "VIOLETTE"),
+          "blue" = list(emoji = "🔵", name = "BLEUE")
+        )
+        
+        drawn_color_info <- color_names[[lottery$drawn_color]]
+        
+        tagList(
+          p(strong("Votre choix : "), "Urne ", selected$response),
+          p(strong("Composition de l'urne : "), 
+            lottery$urn_composition$yellow, " 🟡 / ",
+            lottery$urn_composition$purple, " 🟣 / ",
+            lottery$urn_composition$blue, " 🔵"),
+          hr(),
+          h5(icon("dice"), " Résultat du tirage"),
+          p(style = "font-size: 20px;", "Boule tirée : ", drawn_color_info$emoji, " ", drawn_color_info$name),
+          if (lottery$net_change > 0) {
+            p(style = "color: green; font-size: 18px; font-weight: bold;",
+              "✅ Vous gagnez ", lottery$net_change, " jetons")
+          } else if (lottery$net_change < 0) {
+            p(style = "color: red; font-size: 18px; font-weight: bold;",
+              "❌ Vous perdez ", abs(lottery$net_change), " jetons")
+          } else {
+            p(style = "font-size: 18px; font-weight: bold;",
+              "➖ Vous ne gagnez ni ne perdez de jetons")
+          }
+        )
+      },
+      
+      hr(),
+      
+      div(
+        style = "background-color: #fff9c4; padding: 15px; border-radius: 5px; border-left: 4px solid #fbc02d;",
+        h5(icon("coins"), " Votre rémunération finale"),
+        p(style = "font-size: 22px; font-weight: bold; color: #f57c00;",
+          payoff, " jetons",
+          span(style = "font-size: 14px; color: #666; margin-left: 10px;",
+               "(30 jetons initiaux ", 
+               ifelse(results$lottery_result$net_change >= 0, "+ ", ""),
+               results$lottery_result$net_change, " jetons)")
+        )
+      )
+    )
   })
   
   # ========================================================================
@@ -470,6 +723,7 @@ server <- function(input, output, session) {
       )
     )
   })
+  
 }
 
 # ============================================================================

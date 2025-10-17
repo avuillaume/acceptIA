@@ -256,11 +256,11 @@ section_usages_sante_ui <- function() {
       hr(),
       
       # Espace Numérique de Santé
-      h5("Espace Numérique de Santé (ENS)"),
+      h5(" Mon Espace Santé ou Espace Numérique de Santé (ENS)"),
       
       div(
         class = "question-text",
-        "7. Aviez-vous déjà entendu parler de l'Espace Numérique de Santé ?"
+        "7. Aviez-vous déjà entendu parler de l'Espace Numérique de Santé ou du dossier médical partagé ?"
       ),
       radioButtons(
         "ens_connaissance",
@@ -475,9 +475,38 @@ section_fin_ui <- function() {
       h4("Votre participation est terminée"),
       p("Merci beaucoup d'avoir pris le temps de répondre à ce questionnaire."),
       p("Vos réponses ont été enregistrées et seront utilisées de manière anonyme pour cette recherche."),
-      p("Si vous avez des questions concernant cette étude, n'hésitez pas à contacter les chercheurs."),
+      
       hr(),
-      p(strong("Vous pouvez maintenant fermer cette fenêtre."))
+      
+      h4(style = "color: #2c3e50;", "🎲 Résultat du tirage au sort"),
+      p("Selon le protocole de l'étude, une de vos décisions a été sélectionnée aléatoirement et le tirage au sort a été effectué pour déterminer votre rémunération finale."),
+      
+      # Zone pour afficher les résultats du tirage
+      uiOutput("lottery_results_display"),
+      
+      hr(),
+      
+      p("Si vous avez des questions concernant cette étude ou votre rémunération, n'hésitez pas à contacter les chercheurs."),
+      
+      div(
+        style = "text-align: center; margin-top: 30px;",
+        actionButton(
+          "btn_fermer",
+          "Fermer cette fenêtre",
+          class = "btn-primary btn-lg",
+          onclick = "window.close();"
+        ),
+        br(), br(),
+        p(style = "color: #6c757d; font-style: italic;", 
+          "Cette fenêtre se fermera automatiquement dans 1 minute.")
+      ),
+      
+      # Script pour fermer automatiquement la fenêtre après 60 secondes
+      tags$script(HTML("
+        setTimeout(function() {
+          window.close();
+        }, 60000);
+      "))
     )
   )
 }

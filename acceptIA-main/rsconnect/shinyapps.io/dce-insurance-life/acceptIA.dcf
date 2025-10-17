@@ -1,0 +1,13 @@
+name: acceptIA
+title: acceptIA
+username: dce-insurance-life
+account: dce-insurance-life
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 15766728
+bundleId: 11039300
+url: https://dce-insurance-life.shinyapps.io/acceptIA/
+version: 1
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: .RData|accept.R|AJOUT_DECISIONS_5-8.md|AJOUT_JEUX_HASARD.md|AJOUT_TACHES_AVERSION.md|analyse_donnees.R|ARCHITECTURE_V4.md|ARCHITECTURE_V5.md|Aversions&acceptabilité de l'IA en santé.docx.md|CHANGEMENTS.md|data/study_data.csv|data/study_data.RData|DECISIONS_CONDITIONNELLES.md|DEMARRAGE_RAPIDE.md|Ecrans seuls aversions.docx.md|GUIDE_ANALYSE.md|Km_4plots.pdf|lancer_analyse.R|lancer_app.R|MODIFICATION_DECISIONS_5-8_CHOIX_URNES.md|MODIFICATIONS_COMPTAGE_PI.md|MODIFICATIONS_SEPARATION_IA.md|RANDOMISATION_GRILLES.md|RANDOMISATION_IA.md|README.md|resultats/README.md|RESUME_COMPLET_MODIFICATIONS.md|RESUME_GRILLES_CONDITIONNELLES_RANDOMISEES.md|RESUME_JEUX_HASARD.md|RESUME_MODIFICATIONS.md|RESUME_MODIFICATIONS_COMPTAGE.md|SEPARATION_RESUME.md|test_comptage_pi.R|TIRAGE_AU_SORT_REMUNERATION.md

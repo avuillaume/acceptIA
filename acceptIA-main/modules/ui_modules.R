@@ -476,193 +476,308 @@ section_ambiguite_pertes_ui <- function() {
   )
 }
 
-# Section Risque Gains 2 - Décision 5
+# Section Risque Pertes 2 - Décision 5 (Choix d'urnes)
 section_risque_gains_2_ui <- function() {
   tagList(
-    div(class = "section-title", "Décision 5 - Investissez vos jetons"),
+    div(class = "section-title", "Investissez vos jetons - Décision 5"),
     wellPanel(
       div(
         style = "background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #ffc107;",
-        p(icon("info-circle"), " ", 
-          "Le tirage au sort de la décision donnant lieu à votre rémunération finale n'a lieu qu'à la fin de tous les jeux. ",
-          strong("Vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
+        p("La décision donnant lieu à votre rémunération finale n'étant tirée au sort parmi toutes vos décisions qu'à la fin de la première partie, ",
+          strong("vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
       ),
       
-      div(
-        style = "background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;",
-        p(strong("Avec 10 de vos 30 jetons, vous pouvez :")),
-        tags$ul(
-          tags$li("Conserver les 10 jetons"),
-          tags$li("OU investir tout ou une partie des 10 jetons dans un jeu de hasard")
-        )
+      p("Vous allez maintenant choisir un ", strong("tirage au sort parmi plusieurs tirages possibles.")),
+      
+      p("Chaque tirage correspond à une urne contenant des boules de couleurs différentes : ",
+        strong("JAUNE"), ", ", strong("VIOLETTE"), " ou ", strong("BLEUE"), "."),
+      p("La couleur tirée détermine le nombre de jetons que vous ", strong("gagnez"), "."),
+      
+      tags$ul(
+        tags$li("Une urne avec 60 🟡 : vous êtes certain de tirer une boule jaune."),
+        tags$li("Une urne avec 30 🟡 et 30 🟣 : vous avez 1 chance sur 2 de tirer l'une des 2 couleurs."),
+        tags$li("Une urne avec 20 🟡, 20 🟣 et 20 🔵 : vous avez 1 chance sur 3 de tirer l'une des 3 couleurs.")
       ),
       
       hr(),
       
-      h5(icon("dice"), " Comment fonctionne le jeu de hasard ?"),
-      p("Une urne contient 60 boules : ", strong("30 boules JAUNES"), " et ", strong("30 boules VIOLETTES"), "."),
-      div(
-        style = "text-align: center; background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;",
-        div(
-          style = "display: inline-block; border: 3px solid #333; border-radius: 50%; width: 200px; height: 200px; padding: 20px; background: linear-gradient(to bottom, #ffeb3b 50%, #9c27b0 50%);",
-          div(style = "padding-top: 70px; font-size: 18px; font-weight: bold; color: #333;",
-              "30 🟡 / 30 🟣")
+      h5("Choisissez votre tirage préféré :"),
+      
+      # Tableau des options
+      tags$table(
+        style = "width: 100%; border-collapse: collapse; margin: 20px 0;",
+        tags$thead(
+          tags$tr(
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Option"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Contenu de l'urne"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Résultat du tirage"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Votre choix")
+          )
+        ),
+        tags$tbody(
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "A"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "60 boules 🟡"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "Boule 🟡 — vous gagnez 10 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_gains_2_choix", NULL, choices = c("A" = "A"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "B"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " / 30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E3")),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " — vous gagnez 5 jetons", br(),
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " — vous gagnez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_gains_2_choix", NULL, choices = c("B" = "B"), selected = character(0)))
+          ),
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "C"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "20 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " / 20 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " / 20 boules ", tags$span(style = "font-size: 18px;", "\U0001F535")),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule 🟡 — vous gagnez 5 jetons", br(),
+                    "Boule 🟣 — vous gagnez 10 jetons", br(),
+                    "Boule 🔵 — vous gagnez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_gains_2_choix", NULL, choices = c("C" = "C"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "D"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " / 30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E1")),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " — vous gagnez 0 jetons", br(),
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " — vous gagnez 20 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_gains_2_choix", NULL, choices = c("D" = "D"), selected = character(0)))
+          )
         )
-      ),
-      p(strong("Deux possibilités :")),
-      div(style = "margin: 15px 0;",
-        div(style = "background-color: #fff9c4; padding: 10px; border-left: 4px solid #fbc02d; margin-bottom: 10px;",
-            p(strong("🟡 Tirage JAUNE :"), " vous gagnez ", strong("3 fois"), " les jetons investis")),
-        div(style = "background-color: #f3e5f5; padding: 10px; border-left: 4px solid #9c27b0;",
-            p(strong("🟣 Tirage VIOLET :"), " vous perdez les jetons investis"))
-      ),
-      hr(),
-      h5("💰 Combien souhaitez-vous investir ?"),
-      sliderInput("risque_gains_2_invest", "Je décide d'investir :", min = 0, max = 10, value = 0, step = 1, post = " jetons", width = "100%"),
-      uiOutput("risque_gains_2_summary")
+      )
     )
   )
 }
 
-# Section Risque Pertes 2 - Décision 6
+# Section Ambiguïté Pertes 2 - Décision 6 (Choix d'urnes)
 section_risque_pertes_2_ui <- function() {
   tagList(
-    div(class = "section-title", "Décision 6 - Investissez vos jetons"),
+    div(class = "section-title", "Investissez vos jetons - Décision 6"),
     wellPanel(
       div(
         style = "background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #ffc107;",
-        p(icon("info-circle"), " ", 
-          "Le tirage au sort de la décision donnant lieu à votre rémunération finale n'a lieu qu'à la fin de tous les jeux. ",
-          strong("Vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
+        p("La décision donnant lieu à votre rémunération finale n'étant tirée au sort parmi toutes vos décisions qu'à la fin de la première partie, ",
+          strong("vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
       ),
-      div(
-        style = "background-color: #ffebee; padding: 15px; border-radius: 5px; margin-bottom: 20px;",
-        p(strong("Avec 10 de vos 30 jetons, vous pouvez :")),
-        tags$ul(
-          tags$li("Ne rien faire et ", strong("perdre les 10 jetons")),
-          tags$li("OU investir tout ou une partie des 10 jetons dans un jeu de hasard")
-        )
+      
+      p("Vous allez maintenant choisir un ", strong("tirage au sort parmi plusieurs tirages possibles.")),
+      
+      p("Chaque tirage correspond à une urne contenant des boules de couleurs différentes : ",
+        strong("JAUNE"), ", ", strong("VIOLETTE"), " ou ", strong("BLEUE"), ", mais ",
+        strong("vous ne connaissez pas le nombre"), "."),
+      p("La couleur tirée détermine le nombre de jetons que vous ", strong("perdez"), "."),
+      
+      tags$ul(
+        tags$li("Une urne avec 🟡 : vous êtes certain de tirer une boule jaune."),
+        tags$li("Une urne avec 🟡 et 🟣 : vous ne connaissez pas vos chances de tirer chacune des 2 couleurs."),
+        tags$li("Une urne avec 🟡, 🟣 et 🔵 : vous ne connaissez pas vos chances de tirer chacune des 3 couleurs.")
       ),
+      
       hr(),
-      h5(icon("dice"), " Comment fonctionne le jeu de hasard ?"),
-      p("Une urne contient 60 boules : ", strong("30 boules JAUNES"), " et ", strong("30 boules VIOLETTES"), "."),
-      div(
-        style = "text-align: center; background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;",
-        div(
-          style = "display: inline-block; border: 3px solid #333; border-radius: 50%; width: 200px; height: 200px; padding: 20px; background: linear-gradient(to bottom, #ffeb3b 50%, #9c27b0 50%);",
-          div(style = "padding-top: 70px; font-size: 18px; font-weight: bold; color: #333;",
-              "30 🟡 / 30 🟣")
+      
+      h5("Choisissez votre tirage préféré :"),
+      
+      # Tableau des options
+      tags$table(
+        style = "width: 100%; border-collapse: collapse; margin: 20px 0;",
+        tags$thead(
+          tags$tr(
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Option"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Contenu de l'urne"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Résultat du tirage"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Votre choix")
+          )
+        ),
+        tags$tbody(
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "A"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "🟡 boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "Boule 🟡 — vous perdez 10 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_pertes_2_choix", NULL, choices = c("A" = "A"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "B"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "🟡 / 🟣 boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule 🟡 — vous perdez 5 jetons", br(),
+                    "Boule 🟣 — vous perdez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_pertes_2_choix", NULL, choices = c("B" = "B"), selected = character(0)))
+          ),
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "C"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "🟡 / 🟣 / 🔵 boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule 🟡 — vous perdez 5 jetons", br(),
+                    "Boule 🟣 — vous perdez 10 jetons", br(),
+                    "Boule 🔵 — vous perdez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_pertes_2_choix", NULL, choices = c("C" = "C"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "D"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " / ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " — vous perdez 0 jetons", br(),
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " — vous perdez 20 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("risque_pertes_2_choix", NULL, choices = c("D" = "D"), selected = character(0)))
+          )
         )
-      ),
-      p(strong("Deux possibilités :")),
-      div(style = "margin: 15px 0;",
-        div(style = "background-color: #fff9c4; padding: 10px; border-left: 4px solid #fbc02d; margin-bottom: 10px;",
-            p(strong("🟡 Tirage JAUNE :"), " vous récupérez les jetons investis")),
-        div(style = "background-color: #f3e5f5; padding: 10px; border-left: 4px solid #9c27b0;",
-            p(strong("🟣 Tirage VIOLET :"), " vous perdez ", strong("3 fois"), " les jetons investis"))
-      ),
-      hr(),
-      h5("💰 Combien souhaitez-vous investir ?"),
-      sliderInput("risque_pertes_2_invest", "Je décide d'investir :", min = 0, max = 10, value = 0, step = 1, post = " jetons", width = "100%"),
-      uiOutput("risque_pertes_2_summary")
+      )
     )
   )
 }
 
-# Section Ambiguïté Gains 2 - Décision 7
+# Section Risque Gains 2 - Décision 7 (Choix d'urnes)
 section_ambiguite_gains_2_ui <- function() {
   tagList(
-    div(class = "section-title", "Décision 7 - Investissez vos jetons"),
+    div(class = "section-title", "Investissez vos jetons - Décision 7"),
     wellPanel(
       div(
         style = "background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #ffc107;",
-        p(icon("info-circle"), " ", 
-          "Le tirage au sort de la décision donnant lieu à votre rémunération finale n'a lieu qu'à la fin de tous les jeux. ",
-          strong("Vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
+        p("La décision donnant lieu à votre rémunération finale n'étant tirée au sort parmi toutes vos décisions qu'à la fin de la première partie, ",
+          strong("vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
       ),
-      div(
-        style = "background-color: #e7f3ff; padding: 15px; border-radius: 5px; margin-bottom: 20px;",
-        p(strong("Avec 10 de vos 30 jetons, vous pouvez :")),
-        tags$ul(
-          tags$li("Conserver les 10 jetons"),
-          tags$li("OU investir tout ou une partie des 10 jetons dans un jeu de hasard")
-        )
+      
+      p("Vous allez maintenant choisir un ", strong("tirage au sort parmi plusieurs tirages possibles.")),
+      
+      p("Chaque tirage correspond à une urne contenant des boules de couleurs différentes : ",
+        strong("JAUNE"), ", ", strong("VIOLETTE"), " ou ", strong("BLEUE"), "."),
+      p("La couleur tirée détermine le nombre de jetons que vous ", strong("gagnez"), "."),
+      
+      tags$ul(
+        tags$li("Une urne avec 60 🟡 : vous êtes certain de tirer une boule jaune."),
+        tags$li("Une urne avec 30 🟡 et 30 🟣 : vous avez 1 chance sur 2 de tirer l'une des 2 couleurs."),
+        tags$li("Une urne avec 20 🟡, 20 🟣 et 20 🔵 : vous avez 1 chance sur 3 de tirer l'une des 3 couleurs.")
       ),
+      
       hr(),
-      h5(icon("dice"), " Comment fonctionne le jeu de hasard ?"),
-      p("Une urne contient 60 boules : des boules ", strong("JAUNES"), " et/ou des boules ", strong("VIOLETTES"), "."),
-      div(
-        style = "background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ff9800;",
-        p(icon("exclamation-triangle"), " ", strong("Vous ne savez pas combien il y a de boules de chaque couleur dans l'urne."))
-      ),
-      div(
-        style = "text-align: center; background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;",
-        div(
-          style = "display: inline-block; border: 3px dashed #ff9800; border-radius: 50%; width: 200px; height: 200px; padding: 20px; background: linear-gradient(135deg, #ffeb3b 0%, #ffeb3b 25%, #9c27b0 25%, #9c27b0 50%, #ffeb3b 50%, #ffeb3b 75%, #9c27b0 75%);",
-          div(style = "padding-top: 70px; font-size: 18px; font-weight: bold; color: #333; background-color: rgba(255,255,255,0.8); border-radius: 10px;",
-              "🟡 ? / 🟣 ?")
+      
+      h5("Choisissez votre tirage préféré :"),
+      
+      # Tableau des options
+      tags$table(
+        style = "width: 100%; border-collapse: collapse; margin: 20px 0;",
+        tags$thead(
+          tags$tr(
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Option"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Contenu de l'urne"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Résultat du tirage"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Votre choix")
+          )
+        ),
+        tags$tbody(
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "A"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "60 boules 🟡"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "Boule 🟡 — vous gagnez 10 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_gains_2_choix", NULL, choices = c("A" = "A"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "B"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " / 30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E3")),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " — vous gagnez 5 jetons", br(),
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " — vous gagnez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_gains_2_choix", NULL, choices = c("B" = "B"), selected = character(0)))
+          ),
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "C"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "20 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " / 20 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " / 20 boules ", tags$span(style = "font-size: 18px;", "\U0001F535")),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule 🟡 — vous gagnez 5 jetons", br(),
+                    "Boule 🟣 — vous gagnez 10 jetons", br(),
+                    "Boule 🔵 — vous gagnez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_gains_2_choix", NULL, choices = c("C" = "C"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "D"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " / 30 boules ", tags$span(style = "font-size: 18px;", "\U0001F7E1")),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " — vous gagnez 0 jetons", br(),
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " — vous gagnez 20 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_gains_2_choix", NULL, choices = c("D" = "D"), selected = character(0)))
+          )
         )
-      ),
-      p(strong("Deux possibilités :")),
-      div(style = "margin: 15px 0;",
-        div(style = "background-color: #fff9c4; padding: 10px; border-left: 4px solid #fbc02d; margin-bottom: 10px;",
-            p(strong("🟡 Tirage JAUNE :"), " vous gagnez ", strong("3 fois"), " les jetons investis")),
-        div(style = "background-color: #f3e5f5; padding: 10px; border-left: 4px solid #9c27b0;",
-            p(strong("🟣 Tirage VIOLET :"), " vous perdez les jetons investis"))
-      ),
-      hr(),
-      h5("💰 Combien souhaitez-vous investir ?"),
-      sliderInput("ambiguite_gains_2_invest", "Je décide d'investir :", min = 0, max = 10, value = 0, step = 1, post = " jetons", width = "100%"),
-      uiOutput("ambiguite_gains_2_summary")
+      )
     )
   )
 }
 
-# Section Ambiguïté Pertes 2 - Décision 8
+# Section Ambiguïté Gains 2 - Décision 8 (Choix d'urnes)
 section_ambiguite_pertes_2_ui <- function() {
   tagList(
-    div(class = "section-title", "Décision 8 - Investissez vos jetons"),
+    div(class = "section-title", "Investissez vos jetons - Décision 8"),
     wellPanel(
       div(
         style = "background-color: #fff3cd; padding: 15px; border-radius: 5px; margin-bottom: 20px; border-left: 4px solid #ffc107;",
-        p(icon("info-circle"), " ", 
-          "Le tirage au sort de la décision donnant lieu à votre rémunération finale n'a lieu qu'à la fin de tous les jeux. ",
-          strong("Vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
+        p("La décision donnant lieu à votre rémunération finale n'étant tirée au sort parmi toutes vos décisions qu'à la fin de la première partie, ",
+          strong("vous disposez donc toujours à ce stade de vos 30 jetons initiaux."))
       ),
-      div(
-        style = "background-color: #ffebee; padding: 15px; border-radius: 5px; margin-bottom: 20px;",
-        p(strong("Avec 10 de vos 30 jetons, vous pouvez :")),
-        tags$ul(
-          tags$li("Ne rien faire et ", strong("perdre les 10 jetons")),
-          tags$li("OU investir tout ou une partie des 10 jetons dans un jeu de hasard")
-        )
+      
+      p("Vous allez maintenant choisir un ", strong("tirage au sort parmi plusieurs tirages possibles.")),
+      
+      p("Chaque tirage correspond à une urne contenant des boules de couleurs différentes : ",
+        strong("JAUNE"), ", ", strong("VIOLETTE"), " ou ", strong("BLEUE"), ", mais ",
+        strong("vous ne connaissez pas le nombre"), "."),
+      p("La couleur tirée détermine le nombre de jetons que vous ", strong("perdez"), "."),
+      
+      tags$ul(
+        tags$li("Une urne avec 🟡 : vous êtes certain de tirer une boule jaune."),
+        tags$li("Une urne avec 🟡 et 🟣 : vous ne connaissez pas vos chances de tirer chacune des 2 couleurs."),
+        tags$li("Une urne avec 🟡, 🟣 et 🔵 : vous ne connaissez pas vos chances de tirer chacune des 3 couleurs.")
       ),
+      
       hr(),
-      h5(icon("dice"), " Comment fonctionne le jeu de hasard ?"),
-      p("Une urne contient 60 boules : des boules ", strong("JAUNES"), " et/ou des boules ", strong("VIOLETTES"), "."),
-      div(
-        style = "background-color: #fff3cd; padding: 15px; border-radius: 5px; margin: 15px 0; border-left: 4px solid #ff9800;",
-        p(icon("exclamation-triangle"), " ", strong("Vous ne savez pas combien il y a de boules de chaque couleur dans l'urne."))
-      ),
-      div(
-        style = "text-align: center; background-color: #f8f9fa; padding: 20px; border-radius: 10px; margin: 20px 0;",
-        div(
-          style = "display: inline-block; border: 3px dashed #ff9800; border-radius: 50%; width: 200px; height: 200px; padding: 20px; background: linear-gradient(135deg, #ffeb3b 0%, #ffeb3b 25%, #9c27b0 25%, #9c27b0 50%, #ffeb3b 50%, #ffeb3b 75%, #9c27b0 75%);",
-          div(style = "padding-top: 70px; font-size: 18px; font-weight: bold; color: #333; background-color: rgba(255,255,255,0.8); border-radius: 10px;",
-              "🟡 ? / 🟣 ?")
+      
+      h5("Choisissez votre tirage préféré :"),
+      
+      # Tableau des options
+      tags$table(
+        style = "width: 100%; border-collapse: collapse; margin: 20px 0;",
+        tags$thead(
+          tags$tr(
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Option"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Contenu de l'urne"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6;", "Résultat du tirage"),
+            tags$th(style = "padding: 10px; background-color: #f8f9fa; border: 1px solid #dee2e6; text-align: center;", "Votre choix")
+          )
+        ),
+        tags$tbody(
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "A"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "🟡 boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "Boule 🟡 — vous perdez 10 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_pertes_2_choix", NULL, choices = c("A" = "A"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "B"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " / ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " — vous perdez 5 jetons", br(),
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " — vous perdez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_pertes_2_choix", NULL, choices = c("B" = "B"), selected = character(0)))
+          ),
+          tags$tr(
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "C"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", "🟡 / 🟣 / 🔵 boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule 🟡 — vous perdez 5 jetons", br(),
+                    "Boule 🟣 — vous perdez 10 jetons", br(),
+                    "Boule 🔵 — vous perdez 15 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_pertes_2_choix", NULL, choices = c("C" = "C"), selected = character(0)))
+          ),
+          tags$tr(style = "background-color: #f8f9fa;",
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center; font-weight: bold;", "D"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " / ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " boules"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6;", 
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E1"), " — vous perdez 0 jetons", br(),
+                    "Boule ", tags$span(style = "font-size: 18px;", "\U0001F7E3"), " — vous perdez 20 jetons"),
+            tags$td(style = "padding: 10px; border: 1px solid #dee2e6; text-align: center;", radioButtons("ambiguite_pertes_2_choix", NULL, choices = c("D" = "D"), selected = character(0)))
+          )
         )
-      ),
-      p(strong("Deux possibilités :")),
-      div(style = "margin: 15px 0;",
-        div(style = "background-color: #fff9c4; padding: 10px; border-left: 4px solid #fbc02d; margin-bottom: 10px;",
-            p(strong("🟡 Tirage JAUNE :"), " vous récupérez les jetons investis")),
-        div(style = "background-color: #f3e5f5; padding: 10px; border-left: 4px solid #9c27b0;",
-            p(strong("🟣 Tirage VIOLET :"), " vous perdez ", strong("3 fois"), " les jetons investis"))
-      ),
-      hr(),
-      h5("💰 Combien souhaitez-vous investir ?"),
-      sliderInput("ambiguite_pertes_2_invest", "Je décide d'investir :", min = 0, max = 10, value = 0, step = 1, post = " jetons", width = "100%"),
-      uiOutput("ambiguite_pertes_2_summary")
+      )
     )
   )
 }

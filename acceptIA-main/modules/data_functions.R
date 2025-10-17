@@ -2,6 +2,114 @@
 # FONCTIONS DE GESTION DES DONNÉES
 # ============================================================================
 
+# Charger le package MongoDB
+if (!require("mongolite")) install.packages("mongolite")
+library(mongolite)
+
+# ============================================================================
+# FONCTIONS MONGODB
+# ============================================================================
+
+# Fonction pour obtenir la connexion MongoDB
+get_mongo_connection <- function() {
+  # Connection string MongoDB Atlas
+  mongo_uri <- "mongodb+srv://vuillaumeanthony_db_user:y4IRDyem6180yh7I@cluster0.zaf44u9.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0"
+  
+  # Se connecter à la collection "participants"
+  mongo(
+    collection = "participants",
+    db = "acceptia_study",
+    url = mongo_uri
+  )
+}
+
+# Fonction pour sauvegarder les données d'un participant dans MongoDB
+save_participant_data_mongo <- function(rv) {
+  tryCatch({
+    # Connexion à MongoDB
+    participants_collection <- get_mongo_connection()
+    
+    # Préparer les données du participant
+    data_row <- data.frame(
+      # Métadonnées
+      participant_id = rv$participant_id,
+      timestamp = format(Sys.time(), "%Y-%m-%d %H:%M:%S"),
+      
+      # Randomisation
+      benefices_first = rv$benefices_first,
+      usages_sante_first = rv$usages_sante_first,
+      
+      # Tâche de comptage
+      digit_to_count = rv$digit_to_count,
+      correct_count = rv$correct_count,
+      
+      stringsAsFactors = FALSE
+    )
+    
+    # Ajouter toutes les données collectées depuis rv$participant_data
+    for (name in names(rv$participant_data)) {
+      if (!(name %in% names(data_row))) {
+        value <- rv$participant_data[[name]]
+        # Convertir NULL en NA
+        if (is.null(value)) value <- NA
+        data_row[[name]] <- value
+      }
+    }
+    
+    # Ajouter les flags des sections optionnelles
+    data_row$show_section_8 <- rv$show_section_8
+    data_row$show_section_9 <- rv$show_section_9
+    data_row$show_section_10 <- rv$show_section_10
+    data_row$show_section_11 <- rv$show_section_11
+    
+    # Ajouter les résultats de la loterie
+    if (!is.null(rv$lottery_results)) {
+      data_row$lottery_selected_type <- rv$lottery_results$selected_grille$type
+      data_row$lottery_selected_optional <- rv$lottery_results$selected_grille$optional
+      data_row$lottery_final_payoff <- rv$lottery_results$final_payoff
+    }
+    
+    # Insérer dans MongoDB
+    participants_collection$insert(data_row)
+    
+    cat("✓ Participant", rv$participant_id, "sauvegardé dans MongoDB\n")
+    return(TRUE)
+    
+  }, error = function(e) {
+    cat("✗ ERREUR lors de la sauvegarde MongoDB:", e$message, "\n")
+    warning("Impossible de sauvegarder dans MongoDB: ", e$message)
+    return(FALSE)
+  })
+}
+
+# Fonction pour récupérer tous les participants depuis MongoDB
+get_all_participants_mongo <- function() {
+  tryCatch({
+    participants_collection <- get_mongo_connection()
+    all_data <- participants_collection$find('{}')
+    return(all_data)
+  }, error = function(e) {
+    warning("Impossible de récupérer les données MongoDB: ", e$message)
+    return(NULL)
+  })
+}
+
+# Fonction pour compter le nombre de participants dans MongoDB
+count_participants_mongo <- function() {
+  tryCatch({
+    participants_collection <- get_mongo_connection()
+    count <- participants_collection$count('{}')
+    return(count)
+  }, error = function(e) {
+    warning("Impossible de compter les participants: ", e$message)
+    return(0)
+  })
+}
+
+# ============================================================================
+# FONCTIONS TRADITIONNELLES (CSV) - Conservées pour backup local
+# ============================================================================
+
 # Fonction pour créer la structure des données
 create_data_structure <- function() {
   data_structure <- list(
